@@ -4,9 +4,11 @@ BankSecurity is an open-source discord bot coded in Python( using the library di
 Vulnerabilities:
 
 Python's str.format() function
+
 Discord's guild chunking (internal member cache) 
 
 Requirements for code:
 
 pip install discord 
+
 pip install python-dotenv 
