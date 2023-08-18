@@ -1,6 +1,0 @@
-{
-    "joe": "abc123",
-    "bob": "verysecret",
-    "{bank.bankInfo}": "hack",
-    "{bank.name:>9999999999}": "overload"
-}
