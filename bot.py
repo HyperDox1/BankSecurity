@@ -14,7 +14,7 @@ intents.presences = True
 #intents.members = True
 
 #flag = discord.MemberCacheFlags.none()
-client = commands.Bot(command_prefix="!", intents=intents)
+client = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 TOKEN = os.getenv("DISCORD_TOKEN")
 bot_status = cycle(["Test out Python vulnerabilities!", "Be careful that your money stays safe..."])
 
@@ -24,17 +24,19 @@ async def change_status():
 
 @client.event
 async def on_ready():
-    #await client.tree.sync()
+    await client.tree.sync()
     print(f'Success! {client.user} is now connected!')
     change_status.start()
 
-"""@client.command()
+"""
+@client.command()
 async def sync(ctx):
+    await client.tree.sync()
     if ctx.author.id == 502642668476825601:
         await client.tree.sync()
         print('Command tree synced.')
     else:
-        await ctx.send(content='You must be the owner to use this command!') """
+        await ctx.send(content='You must be the owner to use this command!')"""
 
 @client.event
 async def on_guild_join(guild):
@@ -73,8 +75,14 @@ async def on_member_join(member):
         join_role = discord.utils.get(member.guild.roles, name=bank_role[str(member.guild.id)])
         await member.add_roles(join_role)
 
+
 @client.command()
 async def joinrole(ctx, role: discord.Role):
+    """
+    Sets the role that is automatically added to users when they join the server.
+    Parameters: Discord Role
+
+    """
     with open("cogs/jsonfiles/bankrole.json", "r") as f:
         bank_role = json.load(f)
         f.close()
@@ -84,6 +92,22 @@ async def joinrole(ctx, role: discord.Role):
         f.close()
     embed = discord.Embed(color=discord.Color.green())
     embed.add_field(name="Success!", value=f"The automatic role for this bank has been set to {role.mention}.")
+    await ctx.send(embed=embed)
+
+@client.command()
+async def help(ctx):
+    """
+    Displays BankSecurity's Help Menu
+
+    """
+    commands = [command.name for command in client.commands]
+    embed = discord.Embed(title="BankSecurity's Help Menu")
+    for command in commands:
+        embed.add_field(name=command, value=client.get_command(command).help)
+    embed.add_field(
+        name="Additional Information",
+        value="Created by HyperDox \nSource Code: https://github.com/HyperDox1/BankSecurity \nDiscord Contact: 1nOnlyHyperDox"
+    )
     await ctx.send(embed=embed)
 
 async def load():
