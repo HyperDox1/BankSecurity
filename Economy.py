@@ -29,8 +29,9 @@ class Economy(commands.Cog):
     @commands.command(aliases=["create"])
     async def createAccount(self, ctx):
         """
-        Creates a new bank account if user has not made one yet. Each user can make a max amount of 3 bank accounts
-
+        Creates a new bank account if user has not made one yet.
+        Each user can make a max amount of 3 bank accounts
+        Parameters: None
         """
         with open(self.accFile, "r") as f:
             accounts = json.load(f)
@@ -188,6 +189,11 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command(aliases=["acc"])
     async def viewAccount(self, ctx, accName: str = None):
+        """
+        Displays the information related to an existing bank account.
+        Parameters: Account Name
+
+        """
         if accName is None:
             await ctx.send("You need to include an account name in this command!")
         elif await self.CheckBankAccount(ctx, accName):
@@ -196,6 +202,11 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command(aliases=["close"])
     async def closeAccount(self, ctx, accName: str=None):
+        """
+        Closes a bank account and removes all related information.
+        Parameters: Account Name
+
+        """
         if accName is None:
             await ctx.send("You need to include an account name in this command!")
         elif await self.CheckBankAccount(ctx, accName):
@@ -215,6 +226,14 @@ class Economy(commands.Cog):
                         json.dump(userpass, f, indent=4)
                         f.close()
                     await ctx.send(f"Successfully closed {accName}'s bank account.")
+                    with open("cogs/jsonfiles/accounts.json", "r") as f:
+                        accounts = json.load(f)
+                        f.close()
+                    if accounts[str(ctx.author.id)] >= 0:
+                        accounts[str(ctx.author.id)] -= 1
+                    with open("cogs/jsonfiles/accounts.json", "w") as f:
+                        json.dump(accounts, f, indent=4)
+                        f.close()
             else:
                 await ctx.send(f"Unable to close {accName}'s bank account.")
 
@@ -222,6 +241,11 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command(aliases=["wall"])
     async def wallet(self, ctx, member: discord.Member=None):
+        """
+        Displays the value of a user's wallet.
+        Parameters: Discord User (Optional)
+
+        """
         if member is None:
             member = ctx.author
         with open("cogs/jsonfiles/wallets.json", "r") as f:
@@ -239,12 +263,24 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command(aliases=["leaderboard"])
     async def viewLeaderboard(self, ctx):
+        """
+        Displays the top 10 richest bank accounts globally.
+        A str.format() vulnerability exists here: Can you figure it out?
+        *Hint: Try creating a bank account with the name "{bank.bankInfo}"*
+        Parameters: None
+
+        """
         bank = BankAccount.leaderboard()
         await ctx.send(bank)
 
     @commands.guild_only()
     @commands.command(aliases=["description"])
     async def setDescription(self, ctx, accName: str):
+        """
+        Sets the description for a bank account.
+        Parameters: Account Name
+
+        """
         if await self.CheckBankAccount(ctx, accName):
             if await self.login(ctx.author, accName):
                 await BankAccount(accName).description(ctx, self.client)
@@ -254,6 +290,11 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command(aliases=["dep"])
     async def deposit(self, ctx, accName: str, amount: int):
+        """
+        Deposits a specified amount of money into a bank account.
+        Parameters: Account Name, Deposit Amount
+
+        """
         if await self.CheckBankAccount(ctx, accName):
             if await self.login(ctx.author, accName):
                 await BankAccount(accName).deposit(ctx, amount)
@@ -263,6 +304,11 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command(aliases=["wd"])
     async def withdraw(self, ctx, accName: str, amount: int):
+        """
+        Withdraws a specified amount of money from a bank account and puts that
+        amount into the wallet of the author of the command.
+        Parameters: Account Name, Withdraw Amount
+        """
         if await self.CheckBankAccount(ctx, accName):
             if await self.login(ctx.author, accName):
                 await BankAccount(accName).withdraw(ctx, amount)
@@ -272,6 +318,11 @@ class Economy(commands.Cog):
     @commands.guild_only()
     @commands.command()
     async def transfer(self, ctx, acc1: str, acc2: str, amount: int):
+        """
+        Transfers a specified amount of money from one account to another.
+        Parameters: Account 1 (transfer from), Account 2 (transfer to), Transfer Amount
+
+        """
         if await self.CheckBankAccount(ctx, acc1) and await self.CheckBankAccount(ctx, acc2):
             if await self.login(ctx.author, acc1):
                 await BankAccount(acc1).transferMoney(ctx, acc2, amount)
@@ -283,6 +334,13 @@ class Economy(commands.Cog):
     @commands.bot_has_permissions(ban_members=True)
     @commands.has_permissions(ban_members=True)
     async def ban_user(self, ctx, userid: int, reason: str=None):
+        """
+        Bans a user from the server.
+        *Contains a hierarchy bypass vulnerability: Can you figure it out?*
+        Hint: Try turning on and off "intents.members = True" in the bot's code.
+        Parameters: Discord User ID
+
+        """
         print(ctx.guild.members)
         print(ctx.guild.chunked)
         member = ctx.guild.get_member(userid)
@@ -345,6 +403,11 @@ class Economy(commands.Cog):
     @commands.bot_has_permissions(ban_members=True, kick_members=True)
     @commands.has_permissions(ban_members=True, kick_members=True)
     async def unban_user(self, ctx, userid: int):
+        """
+        Unbans a user from the server.
+        Parameters: Discord User ID
+
+        """
         user = discord.Object(id=userid)
         try:
             await ctx.guild.unban(user)
@@ -361,8 +424,15 @@ class Economy(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.guild_only()
+    @commands.cooldown(1, per=3600)
     @commands.command()
     async def work(self, ctx):
+        """
+        Allows a user to earn money from a job, which is then added to that user's wallet.
+        Command can be called every hour.
+        Parameters: None
+
+        """
         with open("cogs/jsonfiles/wallets.json", "r") as f:
             wallets = json.load(f)
         author = ctx.author.id
@@ -382,9 +452,15 @@ class Economy(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.guild_only()
-    #@commands.cooldown(1, per=5)
+    @commands.cooldown(1, per=3600)
     @commands.command()
     async def beg(self, ctx):
+        """
+        Allows a user to earn/lose a random amount of money by begging.
+        Command can be called every hour.
+        Parameters: None
+
+        """
         author = ctx.author.id
         with open("cogs/jsonfiles/wallets.json", "r") as f:
             wallets = json.load(f)
@@ -434,8 +510,15 @@ class Economy(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.guild_only()
+    @commands.cooldown(1, per=3600)
     @commands.command()
     async def steal(self, ctx, member: discord.Member):
+        """
+        Allows a user to potentially steal money from another user's wallet. May or may not be successful.
+        Command can be called every hour.
+        Parameters: Discord User
+
+        """
         with open("cogs/jsonfiles/wallets.json", "r") as f:
             wallets = json.load(f)
         author = ctx.author.id
