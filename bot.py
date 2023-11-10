@@ -149,7 +149,7 @@ async def vulnerabilities(ctx):
               "attempt to do the same thing. The bot should not ban the other account, since it is able to access user "
               "information when guild chunking is on. \nFixes: If guild chunking is disabled in a bot, query the server "
               " for user information to ensure the bot can retrieve information about server members. This can be done "
-              "by "
+              "by using the `guild.query_members()` function to get information about users in the server. "
     )
     await ctx.send(embed=embed)
 
