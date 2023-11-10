@@ -95,6 +95,65 @@ async def joinrole(ctx, role: discord.Role):
     await ctx.send(embed=embed)
 
 @client.command()
+async def vulnerabilities(ctx):
+    """
+    Displays all the vulnerabilities implemented into the bot. Explains why they exist and how they function.
+    Parameters: None
+
+    """
+    embed = discord.Embed(title="Vulnerabilities in BankSecurity's Commands")
+    embed.add_field(
+        name="!leaderboard",
+        value="Description: Contains a string formatting vulnerability. The code uses Python's str.format() function "
+              "and substitutes a class in for the given value. "
+              "If users create a bank account with a key word (bank) inside curly braces, then the "
+              "function will treat it as a class, allowing users to access internal attributes. This principle applies "
+              "to objects as well. When "
+              "the leaderboard command is called with such accounts, the value of these attributes will be processed "
+              "and displayed in the leaderboard. \nHow to exploit: The account name `{bank.bankInfo}` "
+              "accesses the `bankInfo` attribute of "
+              "the class `BankAccount`, which contains a dictionary with all bank account passwords. The account name "
+              "`{bank.name:>9999999999}` pads the attribute bank.name, the name of the account, with a large amount of "
+              "whitespace, which overwhelms the bot's memory and performs a denial of service attack. The bot will "
+              "crash if the leaderboard command is called with an account having this name. \nFixes: Filter out user "
+              "input for special characters such as `{}` to ensure that users cannot inject code into the program. "
+              "Another fix is to find an alternate method of achieving the desired function without substituting a "
+              "class or using Python's string formatting function. "
+    )
+    embed.add_field(
+        name="!acc",
+        value="Description: Contains a string formatting vulnerability. The code uses Python's str.format() function and "
+              "substitutes a class in for the given value. If users create a bank account and set the description to "
+              "include a key word `bank` inside curly braces, then the function will treat it as a class, allowing users "
+              "to access internal attributes. This principle applies to objects as well. "
+              "When the `!acc` command is called on a bank account with a custom description"
+              "set in this manner, the bot will process the value of the attributes and display them in an embed. "
+              "\nHow to exploit: Setting the description to the string `{bank.bankInfo}` accesses the `bankInfo` attribute"
+              " of the class `BankAccount`, which contains a dictionary with all bank account passwords. The description"
+              "`{bank.override}` accesses the `override` attribute of the `BankAccount` class, which contains the value "
+              "of a password allowing users to log into any bank account. \nFixes: Filter out user "
+              "input for special characters such as `{}` to ensure that users cannot inject code into the program. "
+              "Another fix is to find an alternate method of achieving the desired function without substituting a "
+              "class or using Python's string formatting function."
+    )
+    embed.add_field(
+        name="!ban",
+        value="Description: Users can bypass role hierarchy checks due to mishandling user information. When guild " 
+              "chunking is disabled for the bot (`intents.members = False` or `intents = discord.Intents.default()` "
+              "in the code), it is unable to retrieve information about members in the server, such as roles, so moderators "
+              "can ban people who are higher than them in the role hierarchy. \nHow to exploit: Turn off member intents"
+              "for the bot. Then, give an account moderator permissions by giving the account a role that "
+              "is regarded as a moderator by the bot. Give another account a role that is higher than the `moderator` "
+              "role. With the moderator account, call the command `!ban` on the account that is above in the hierarchy."
+              " The bot should successfully ban the other, regardless of their roles. Then, turn on member intents and "
+              "attempt to do the same thing. The bot should not ban the other account, since it is able to access user "
+              "information when guild chunking is on. \nFixes: If guild chunking is disabled in a bot, query the server "
+              " for user information to ensure the bot can retrieve information about server members. This can be done "
+              "by "
+    )
+    await ctx.send(embed=embed)
+
+@client.command()
 async def help(ctx):
     """
     Displays BankSecurity's Help Menu
